@@ -17,10 +17,7 @@ if TYPE_CHECKING:
 
 class Event(BaseEvent):
     """
-    CQHTTP 协议事件，字段与 CQHTTP 一致。各事件字段参考 `CQHTTP 文档`_
-
-    .. _CQHTTP 文档:
-        https://github.com/howmanybots/onebot/blob/master/README.md
+    go-cqhttp 协议事件，字段与 go-cqhttp 一致。各事件字段参考 https://docs.go-cqhttp.org/
     """
     __event__ = ""
     time: int
@@ -28,7 +25,7 @@ class Event(BaseEvent):
     post_type: str
 
     @overrides(BaseEvent)
-    def get_type(self) -> str:
+    def get_type(self) -> Literal["message", "message_sent", "notice", "request", "meta_event"]:
         return self.post_type
 
     @overrides(BaseEvent)
@@ -202,6 +199,23 @@ class GroupMessageEvent(MessageEvent):
     @overrides(MessageEvent)
     def get_session_id(self) -> str:
         return f"group_{self.group_id}_{self.user_id}"
+
+
+# MessageSent Events
+class MessageSentEvent(MessageEvent):
+    """自身消息事件"""
+    __event__ = "message_sent"
+    post_type: Literal["message_sent"]
+
+
+class PrivateMessageSentEvent(PrivateMessageEvent):
+    """自身私聊消息"""
+    __event__ = "message_sent.private"
+
+
+class GroupMessageSentEvent(GroupMessageEvent):
+    """自身群消息"""
+    __event__ = "message_sent.group"
 
 
 # Notice Events
@@ -562,6 +576,7 @@ def get_event_model(event_name) -> List[Type[Event]]:
 
 __all__ = [
     "Event", "MessageEvent", "PrivateMessageEvent", "GroupMessageEvent",
+    "MessageSentEvent", "PrivateMessageSentEvent", "GroupMessageSentEvent",
     "NoticeEvent", "GroupUploadNoticeEvent", "GroupAdminNoticeEvent",
     "GroupDecreaseNoticeEvent", "GroupIncreaseNoticeEvent",
     "GroupBanNoticeEvent", "FriendAddNoticeEvent", "GroupRecallNoticeEvent",
