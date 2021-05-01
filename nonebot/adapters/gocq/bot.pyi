@@ -80,6 +80,7 @@ class Bot(BaseBot):
     async def send_private_msg(self,
                                *,
                                user_id: int,
+                               group_id: int,
                                message: Union[str, Message],
                                auto_escape: bool = ...,
                                self_id: Optional[int] = ...) -> Dict[str, Any]:
@@ -91,6 +92,7 @@ class Bot(BaseBot):
         :参数:
 
           * ``user_id``: 对方 QQ 号
+          * ``group_id``: 主动发起临时会话群号(机器人本身必须是管理员/群主)
           * ``message``: 要发送的内容
           * ``auto_escape``: 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 ``message`` 字段是字符串时有效
           * ``self_id``: 机器人 QQ 号
@@ -114,6 +116,23 @@ class Bot(BaseBot):
           * ``message``: 要发送的内容
           * ``auto_escape``: 消息内容是否作为纯文本发送（即不解析 CQ 码），只在 ``message`` 字段是字符串时有效
           * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def send_group_forward_msg(self,
+                             *,
+                             group_id: int,
+                             message: List[Dict[str, Any]],
+                             self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          发送合并转发（群）。
+
+        :参数:
+
+          * ``group_id``: 群号
+          * ``message``: 自定义转发消息, 具体看 CQcode
         """
         ...
 
@@ -175,7 +194,7 @@ class Bot(BaseBot):
 
     async def get_forward_msg(self,
                               *,
-                              id: int,
+                              message_id: int,
                               self_id: Optional[int] = ...) -> None:
         """
         :说明:
@@ -184,25 +203,23 @@ class Bot(BaseBot):
 
         :参数:
 
-          * ``id``: 合并转发 ID
+          * ``message_id``: 合并转发 ID
           * ``self_id``: 机器人 QQ 号
         """
         ...
 
-    async def send_like(self,
+    async def get_image(self,
                         *,
-                        user_id: int,
-                        times: int = ...,
-                        self_id: Optional[int] = ...) -> None:
+                        file: str,
+                        self_id: Optional[int] = ...) -> Dict[str, Any]:
         """
         :说明:
 
-          发送好友赞。
+          获取图片信息。
 
         :参数:
 
-          * ``user_id``: 对方 QQ 号
-          * ``times``: 赞的次数，每个好友每天最多 10 次
+          * ``file``: 图片缓存文件名
           * ``self_id``: 机器人 QQ 号
         """
         ...
@@ -313,6 +330,8 @@ class Bot(BaseBot):
                                   enable: bool = ...,
                                   self_id: Optional[int] = ...) -> None:
         """
+        该 API 暂未被 go-cqhttp 支持。
+
         :说明:
 
           群组匿名。
@@ -587,6 +606,8 @@ class Bot(BaseBot):
                           domain: str = ...,
                           self_id: Optional[int] = ...) -> Dict[str, Any]:
         """
+        该 API 暂未被 go-cqhttp 支持。
+
         :说明:
 
           获取 Cookies。
@@ -602,6 +623,8 @@ class Bot(BaseBot):
                              *,
                              self_id: Optional[int] = ...) -> Dict[str, Any]:
         """
+        该 API 暂未被 go-cqhttp 支持。
+
         :说明:
 
           获取 CSRF Token。
@@ -617,6 +640,8 @@ class Bot(BaseBot):
                               domain: str = ...,
                               self_id: Optional[int] = ...) -> Dict[str, Any]:
         """
+        该 API 暂未被 go-cqhttp 支持。
+
         :说明:
 
           获取 QQ 相关接口凭证。
@@ -634,6 +659,8 @@ class Bot(BaseBot):
                          out_format: str,
                          self_id: Optional[int] = ...) -> Dict[str, Any]:
         """
+        该 API 暂未被 go-cqhttp 支持。
+
         :说明:
 
           获取语音。
@@ -642,22 +669,6 @@ class Bot(BaseBot):
 
           * ``file``: 收到的语音文件名（CQ 码的 ``file`` 参数），如 ``0B38145AA44505000B38145AA4450500.silk``
           * ``out_format``: 要转换到的格式，目前支持 ``mp3``、``amr``、``wma``、``m4a``、``spx``、``ogg``、``wav``、``flac``
-          * ``self_id``: 机器人 QQ 号
-        """
-        ...
-
-    async def get_image(self,
-                        *,
-                        file: str,
-                        self_id: Optional[int] = ...) -> Dict[str, Any]:
-        """
-        :说明:
-
-          获取图片。
-
-        :参数:
-
-          * ``file``: 收到的图片文件名（CQ 码的 ``file`` 参数），如 ``6B4DE3DFD1BD271E3297859D41C530F5.jpg``
           * ``self_id``: 机器人 QQ 号
         """
         ...
@@ -690,20 +701,6 @@ class Bot(BaseBot):
         """
         ...
 
-    async def get_status(self,
-                         *,
-                         self_id: Optional[int] = ...) -> Dict[str, Any]:
-        """
-        :说明:
-
-          获取插件运行状态。
-
-        :参数:
-
-          * ``self_id``: 机器人 QQ 号
-        """
-        ...
-
     async def get_version_info(self,
                                *,
                                self_id: Optional[int] = ...) -> Dict[str, Any]:
@@ -725,7 +722,7 @@ class Bot(BaseBot):
         """
         :说明:
 
-          重启 OneBot 实现。
+          重启 go-cqhttp。
 
         :参数:
 
@@ -736,12 +733,366 @@ class Bot(BaseBot):
 
     async def clean_cache(self, *, self_id: Optional[int] = ...) -> None:
         """
+        该 API 暂未被 go-cqhttp 支持。
+
         :说明:
 
           清理数据目录。
 
         :参数:
 
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def set_group_portrait(self,
+                                 *,
+                                 group_id: int,
+                                 file: str,
+                                 cache: int,
+                                 self_id: Optional[int] = ...) -> None:
+        """
+        :说明:
+
+          设置群头像。
+
+        :参数:
+
+          * ``group_id``: 群号
+          * ``file``: 图片文件名
+          * ``cache``: 表示是否使用已缓存的文件
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def ocr_image(self,
+                        *,
+                        image: str,
+                        self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          图片 OCR。
+
+        :参数:
+
+          * ``image``: 图片 ID
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_group_system_msg(self,
+                                   *,
+                                   self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取群系统消息。
+
+        :参数:
+
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def upload_group_file(self,
+                                *,
+                                group_id: int,
+                                file: str,
+                                name: str,
+                                folder: str,
+                                self_id: Optional[int] = ...) -> None:
+        """
+        :说明:
+
+          上传群文件。
+
+        :参数:
+          * ``group_id``: 群号
+          * ``file``: 本地文件路径
+          * ``name``: 储存名称
+          * ``folder``: 父目录ID
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_group_file_system_info(self,
+                                         *,
+                                         group_id: int,
+                                         self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取群文件系统信息。
+
+        :参数:
+          * ``group_id``: 群号
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_group_root_files(self,
+                                   *,
+                                   group_id: int,
+                                   self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取群根目录文件列表。
+
+        :参数:
+          * ``group_id``: 群号
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_group_files_by_folder(self,
+                                        *,
+                                        group_id: int,
+                                        folder_id: str,
+                                        self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取群子目录文件列表。
+
+        :参数:
+          * ``group_id``: 群号
+          * ``folder_id``: 文件夹 ID
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_group_file_url(self,
+                                 *,
+                                 group_id: int,
+                                 file_id: str,
+                                 busid: int,
+                                 self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取群文件资源链接。
+
+        :参数:
+          * ``group_id``: 群号
+          * ``folder_id``: 文件 ID
+          * ``busid``: 文件类型
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_group_file_url(self,
+                                 *,
+                                 group_id: int,
+                                 file_id: str,
+                                 busid: int,
+                                 self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取群文件资源链接。
+
+        :参数:
+          * ``group_id``: 群号
+          * ``folder_id``: 文件 ID
+          * ``busid``: 文件类型
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_status(self,
+                         *,
+                         self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取插件运行状态。
+
+        :参数:
+
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_group_at_all_remain(self,
+                                      *,
+                                      group_id: int,
+                                      self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取群 @全体成员 剩余次数。
+
+        :参数:
+          
+          * ``group_id``: 群号
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def _get_vip_info(self,
+                            *,
+                            user_id: int,
+                            self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取VIP信息。
+
+        :参数:
+          
+          * ``user_id``: QQ 号
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def _send_group_notice(self,
+                                 *,
+                                 group_id: int,
+                                 content: str,
+                                 self_id: Optional[int] = ...) -> None:
+        """
+        :说明:
+
+          发送群公告。
+
+        :参数:
+          
+          * ``group_id``: 群号
+          * ``content``: 公告内容
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def reload_event_filter(self,
+                                 *,
+                                 self_id: Optional[int] = ...) -> None:
+        """
+        :说明:
+
+          重载事件过滤器。
+
+        :参数:
+
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def download_file(self,
+                            *,
+                            url: str,
+                            thread_count: int,
+                            headers: Union[str, List[str]],
+                            self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          下载文件到缓存目录。
+
+        :参数:
+
+          * ``url``: 链接地址
+          * ``thread_count``: 下载线程数
+          * ``headers``: 自定义请求头
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_online_clients(self,
+                                 *,
+                                 no_cache: bool,
+                                 self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取当前账号在线客户端列表。
+
+        :参数:
+
+          * ``no_cache``: 是否无视缓存
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_group_msg_history(self,
+                                    *,
+                                    message_seq: int,
+                                    group_id: int,
+                                    self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取群消息历史记录。
+
+        :参数:
+
+          * ``message_seq``: 起始消息序号, 可通过 get_msg 获得
+          * ``group_id``: 群号
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def set_essence_msg(self,
+                              *,
+                              message_id: int,
+                              self_id: Optional[int] = ...) -> None:
+        """
+        :说明:
+
+          设置精华消息。
+
+        :参数:
+
+          * ``message_id``: 消息 ID
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def delete_essence_msg(self,
+                                 *,
+                                 message_id: int,
+                                 self_id: Optional[int] = ...) -> None:
+        """
+        :说明:
+
+          移出精华消息。
+
+        :参数:
+
+          * ``message_id``: 消息 ID
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def get_essence_msg_list(self,
+                                   *,
+                                   group_id: int,
+                                   self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          获取精华消息列表。
+
+        :参数:
+
+          * ``group_id``: 群号
+          * ``self_id``: 机器人 QQ 号
+        """
+        ...
+
+    async def check_url_safely(self,
+                               *,
+                               url: str,
+                               self_id: Optional[int] = ...) -> Dict[str, Any]:
+        """
+        :说明:
+
+          检查链接安全性。
+
+        :参数:
+
+          * ``url``: 需要检查的链接
           * ``self_id``: 机器人 QQ 号
         """
         ...
