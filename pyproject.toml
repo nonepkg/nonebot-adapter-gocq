@@ -17,10 +17,6 @@ classifiers = [
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3"
 ]
-packages = [
-  { include = "nonebot" }
-]
-exclude = ["nonebot/__init__.py", "nonebot/adapters/__init__.py"]
 
 [tool.poetry.dependencies]
 python = "^3.7.3"
