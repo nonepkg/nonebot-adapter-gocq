@@ -1,0 +1,32 @@
+[tool.poetry]
+name = "nonebot-adapter-gocq"
+version = "2.0.0-alpha.13"
+description = "go-cqhttp adapter for nonebot2"
+authors = ["Jigsaw <j1g5aw@foxmail.com>"]
+license = "MIT"
+readme = "README.md"
+homepage = "https://github.com/Jigsaw111/nonebot-adapter-gocq"
+repository = "https://github.com/Jigsaw111/nonebot-adapter-gocq"
+documentation = "https://v2.nonebot.dev/"
+keywords = ["bot", "qq", "qqbot", "coolq", "cqhttp", "go-cqhttp"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Framework :: Robot Framework",
+  "Framework :: Robot Framework :: Library",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3"
+]
+packages = [
+  { include = "nonebot" }
+]
+exclude = ["nonebot/__init__.py", "nonebot/adapters/__init__.py"]
+
+[tool.poetry.dependencies]
+python = "^3.7.3"
+httpx = "^0.17.0"
+nonebot2 = "^2.0.0-alpha.13"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
