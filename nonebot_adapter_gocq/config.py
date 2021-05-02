@@ -6,12 +6,12 @@ from pydantic import Field, BaseModel
 # priority: alias > origin
 class Config(BaseModel):
     """
-    CQHTTP 配置类
+    go-cqhttp 配置类
 
     :配置项:
 
-      - ``access_token`` / ``cqhttp_access_token``: CQHTTP 协议授权令牌
-      - ``secret`` / ``cqhttp_secret``: CQHTTP HTTP 上报数据签名口令
+      - ``access_token`` / ``cqhttp_access_token``: go-cqhttp 协议授权令牌
+      - ``secret`` / ``cqhttp_secret``: go-cqhttp HTTP 上报数据签名口令
     """
     access_token: Optional[str] = Field(default=None,
                                         alias="cqhttp_access_token")

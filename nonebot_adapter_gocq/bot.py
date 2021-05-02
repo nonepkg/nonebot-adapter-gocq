@@ -13,7 +13,7 @@ from nonebot.adapters import Bot as BaseBot
 from nonebot.exception import RequestDenied
 
 from .utils import log, escape
-from .config import Config as CQHTTPConfig
+from .config import Config as GOCQConfig
 from .message import Message, MessageSegment
 from .event import Reply, Event, MessageEvent, get_event_model
 from .exception import NetworkError, ApiNotAvailable, ActionFailed
@@ -221,9 +221,9 @@ class ResultStore:
 
 class Bot(BaseBot):
     """
-    CQHTTP 协议 Bot 适配。继承属性参考 `BaseBot <./#class-basebot>`_ 。
+    go-cqhttp 协议 Bot 适配。继承属性参考 `BaseBot <./#class-basebot>`_ 。
     """
-    cqhttp_config: CQHTTPConfig
+    cqhttp_config: GOCQConfig
 
     def __init__(self,
                  connection_type: str,
@@ -244,7 +244,7 @@ class Bot(BaseBot):
     @classmethod
     def register(cls, driver: "Driver", config: "Config"):
         super().register(driver, config)
-        cls.cqhttp_config = CQHTTPConfig(**config.dict())
+        cls.cqhttp_config = GOCQConfig(**config.dict())
 
     @classmethod
     @overrides(BaseBot)
@@ -253,12 +253,12 @@ class Bot(BaseBot):
         """
         :说明:
 
-          CQHTTP (OneBot) 协议鉴权。参考 `鉴权 <https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/authorization.md>`_
+          go-cqhttp (OneBot) 协议鉴权。参考 `鉴权 <https://github.com/howmanybots/onebot/blob/master/v11/specs/communication/authorization.md>`_
         """
         x_self_id = headers.get("x-self-id")
         x_signature = headers.get("x-signature")
         token = get_auth_bearer(headers.get("authorization"))
-        cqhttp_config = CQHTTPConfig(**driver.config.dict())
+        cqhttp_config = GOCQConfig(**driver.config.dict())
 
         # 检查连接方式
         if connection_type not in ["http", "websocket"]:
@@ -381,7 +381,7 @@ class Bot(BaseBot):
         """
         :说明:
 
-          调用 CQHTTP 协议 API
+          调用 go-cqhttp 协议 API
 
         :参数:
 

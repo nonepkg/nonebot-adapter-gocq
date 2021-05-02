@@ -10,7 +10,7 @@ from .utils import log, escape, unescape, _b2s
 
 class MessageSegment(BaseMessageSegment):
     """
-    CQHTTP 协议 MessageSegment 适配。具体方法参考协议消息段类型或源码。
+    go-cqhttp 协议 MessageSegment 适配。具体方法参考协议消息段类型或源码。
     """
 
     @overrides(BaseMessageSegment)
@@ -209,7 +209,7 @@ class MessageSegment(BaseMessageSegment):
 
 class Message(BaseMessage):
     """
-    CQHTTP 协议 Message 适配。
+    go-cqhttp 协议 Message 适配。
     """
 
     def __radd__(self, other: Union[str, MessageSegment,

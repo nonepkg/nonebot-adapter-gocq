@@ -6,13 +6,13 @@ from nonebot.exception import (AdapterException, ActionFailed as
                                BaseApiNotAvailable)
 
 
-class CQHTTPAdapterException(AdapterException):
+class GOCQAdapterException(AdapterException):
 
     def __init__(self):
         super().__init__("cqhttp")
 
 
-class ActionFailed(BaseActionFailed, CQHTTPAdapterException):
+class ActionFailed(BaseActionFailed, GOCQAdapterException):
     """
     :说明:
 
@@ -35,7 +35,7 @@ class ActionFailed(BaseActionFailed, CQHTTPAdapterException):
         return self.__repr__()
 
 
-class NetworkError(BaseNetworkError, CQHTTPAdapterException):
+class NetworkError(BaseNetworkError, GOCQAdapterException):
     """
     :说明:
 
@@ -57,5 +57,5 @@ class NetworkError(BaseNetworkError, CQHTTPAdapterException):
         return self.__repr__()
 
 
-class ApiNotAvailable(BaseApiNotAvailable, CQHTTPAdapterException):
+class ApiNotAvailable(BaseApiNotAvailable, GOCQAdapterException):
     pass
