@@ -1,6 +1,6 @@
 import re
 from functools import reduce
-from typing import Any, Dict, Union, Tuple, Mapping, Iterable, Optional
+from typing import Any, Dict, Literal, Union, Tuple, Mapping, Iterable, Optional
 
 from nonebot.typing import overrides
 from nonebot.adapters import Message as BaseMessage, MessageSegment as BaseMessageSegment
@@ -46,62 +46,111 @@ class MessageSegment(BaseMessageSegment):
         return self.type == "text"
 
     @staticmethod
-    def anonymous(ignore_failure: Optional[bool] = None) -> "MessageSegment":
-        return MessageSegment("anonymous", {"ignore": _b2s(ignore_failure)})
-
-    @staticmethod
-    def at(user_id: Union[int, str]) -> "MessageSegment":
-        return MessageSegment("at", {"qq": str(user_id)})
-
-    @staticmethod
-    def contact(type_: str, id: int) -> "MessageSegment":
-        return MessageSegment("contact", {"type": type_, "id": str(id)})
-
-    @staticmethod
-    def contact_group(group_id: int) -> "MessageSegment":
-        return MessageSegment("contact", {"type": "group", "id": str(group_id)})
-
-    @staticmethod
-    def contact_user(user_id: int) -> "MessageSegment":
-        return MessageSegment("contact", {"type": "qq", "id": str(user_id)})
-
-    @staticmethod
-    def dice() -> "MessageSegment":
-        return MessageSegment("dice", {})
+    def text(text: str) -> "MessageSegment":
+        return MessageSegment("text", {"text": text})
 
     @staticmethod
     def face(id_: int) -> "MessageSegment":
         return MessageSegment("face", {"id": str(id_)})
 
     @staticmethod
-    def forward(id_: str) -> "MessageSegment":
-        log("WARNING", "Forward Message only can be received!")
-        return MessageSegment("forward", {"id": id_})
-
-    @staticmethod
-    def image(file: str,
-              type_: Optional[str] = None,
-              cache: bool = True,
-              proxy: bool = True,
-              timeout: Optional[int] = None) -> "MessageSegment":
+    def record(file: str,
+               magic: Optional[bool] = None,
+               cache: Optional[bool] = None,
+               proxy: Optional[bool] = None,
+               timeout: Optional[int] = None) -> "MessageSegment":
         return MessageSegment(
-            "image", {
+            "record", {
                 "file": file,
-                "type": type_,
-                "cache": cache,
-                "proxy": proxy,
+                "magic": _b2s(magic),
+                "cache": _b2s(cache),
+                "proxy": _b2s(proxy),
                 "timeout": timeout
             })
 
     @staticmethod
-    def json(data: str) -> "MessageSegment":
-        return MessageSegment("json", {"data": data})
+    def video(file: str,
+              cover: Optional[str] = None,
+              c_: int = 1) -> "MessageSegment":
+        return MessageSegment("video", {
+            "file": file,
+            "cover": cover,
+            "c_": c_
+        })
+
+    @staticmethod
+    def at(qq: Union[int, str], name: Optional[str] = None) -> "MessageSegment":
+        return MessageSegment("at", {"qq": str(qq), "name": name})
+
+    @staticmethod
+    def rps() -> "MessageSegment":
+        """
+        该 CQcode 暂未被 go-cqhttp 支持。
+        """
+        return MessageSegment("rps", {})
+
+    @staticmethod
+    def dice() -> "MessageSegment":
+        """
+        该 CQcode 暂未被 go-cqhttp 支持。
+        """
+        return MessageSegment("dice", {})
+
+    @staticmethod
+    def shake() -> "MessageSegment":
+        """
+        该 CQcode 暂未被 go-cqhttp 支持。
+        """
+        return MessageSegment("shake", {})
+
+    @staticmethod
+    def anonymous(ignore_failure: Optional[bool] = None) -> "MessageSegment":
+        """
+        该 CQcode 暂未被 go-cqhttp 支持。
+        """
+        return MessageSegment("anonymous", {"ignore": _b2s(ignore_failure)})
+
+    @staticmethod
+    def share(url: str = "",
+              title: str = "",
+              content: Optional[str] = None,
+              image: Optional[str] = None) -> "MessageSegment":
+        return MessageSegment("share", {
+            "url": url,
+            "title": title,
+            "content": content,
+            "image": image
+        })
+
+    @staticmethod
+    def contact(type_: str, id: int) -> "MessageSegment":
+        """
+        该 CQcode 暂未被 go-cqhttp 支持。
+        """
+        return MessageSegment("contact", {"type": type_, "id": str(id)})
+
+    @staticmethod
+    def contact_group(group_id: int) -> "MessageSegment":
+        """
+        该 CQcode 暂未被 go-cqhttp 支持。
+        """
+        return MessageSegment("contact", {"type": "group", "id": str(group_id)})
+
+    @staticmethod
+    def contact_user(user_id: int) -> "MessageSegment":
+        """
+        该 CQcode 暂未被 go-cqhttp 支持。
+        """
+        return MessageSegment("contact", {"type": "qq", "id": str(user_id)})
 
     @staticmethod
     def location(latitude: float,
                  longitude: float,
                  title: Optional[str] = None,
                  content: Optional[str] = None) -> "MessageSegment":
+        """
+        该 CQcode 暂未被 go-cqhttp 支持。
+        """
         return MessageSegment(
             "location", {
                 "lat": str(latitude),
@@ -119,7 +168,7 @@ class MessageSegment(BaseMessageSegment):
                      audio: str,
                      title: str,
                      content: Optional[str] = None,
-                     img_url: Optional[str] = None) -> "MessageSegment":
+                     image: Optional[str] = None) -> "MessageSegment":
         return MessageSegment(
             "music", {
                 "type": "custom",
@@ -127,85 +176,97 @@ class MessageSegment(BaseMessageSegment):
                 "audio": audio,
                 "title": title,
                 "content": content,
-                "image": img_url
+                "image": image
             })
 
     @staticmethod
-    def node(id_: int) -> "MessageSegment":
-        return MessageSegment("node", {"id": str(id_)})
-
-    @staticmethod
-    def node_custom(user_id: int, nickname: str,
-                    content: Union[str, "Message"]) -> "MessageSegment":
-        return MessageSegment("node", {
-            "user_id": str(user_id),
-            "nickname": nickname,
-            "content": content
-        })
-
-    @staticmethod
-    def poke(type_: str, id_: str) -> "MessageSegment":
-        return MessageSegment("poke", {"type": type_, "id": id_})
-
-    @staticmethod
-    def record(file: str,
-               magic: Optional[bool] = None,
-               cache: Optional[bool] = None,
-               proxy: Optional[bool] = None,
-               timeout: Optional[int] = None) -> "MessageSegment":
+    def image(file: str,
+              type_: Optional[Literal["flash", "show"]] = None,
+              cache: bool = True,
+              id_: int = 40000,
+              c_: int = 1) -> "MessageSegment":
         return MessageSegment(
-            "record", {
+            "image", {
                 "file": file,
-                "magic": _b2s(magic),
+                "type": type_,
                 "cache": cache,
-                "proxy": proxy,
-                "timeout": timeout
+                "id_": id_,
+                "c_": c_
             })
 
     @staticmethod
-    def reply(id_: int) -> "MessageSegment":
-        return MessageSegment("reply", {"id": str(id_)})
+    def reply(id_: int,
+              text: Optional[str] = None,
+              qq: Optional[int] = None,
+              time: Optional[int] = None,
+              seq: Optional[int] = None) -> "MessageSegment":
+        return MessageSegment(
+            "reply", {
+                "id": str(id_),
+                "text": text,
+                "qq": str(qq),
+                "time": str(time),
+                "seq": str(seq)
+            })
 
     @staticmethod
-    def rps() -> "MessageSegment":
-        return MessageSegment("rps", {})
+    def poke(qq: Union[int, str]) -> "MessageSegment":
+        return MessageSegment("poke", {"qq": str(qq)})
 
     @staticmethod
-    def shake() -> "MessageSegment":
-        return MessageSegment("shake", {})
+    def gift(qq: Union[int, str], id_: Union[int, str]) -> "MessageSegment":
+        return MessageSegment("poke", {"qq": str(qq), "id": str(id_)})
 
     @staticmethod
-    def share(url: str = "",
-              title: str = "",
-              content: Optional[str] = None,
-              image: Optional[str] = None) -> "MessageSegment":
-        return MessageSegment("share", {
-            "url": url,
-            "title": title,
-            "content": content,
-            "image": image
-        })
+    def forward(id_: str) -> "MessageSegment":
+        log("WARNING", "Forward Message only can be received!")
+        return MessageSegment("forward", {"id": id_})
 
     @staticmethod
-    def text(text: str) -> "MessageSegment":
-        return MessageSegment("text", {"text": text})
+    def node(id_: int,
+             name: Optional[str] = None,
+             uin: Optional[int] = None,
+             content: Optional["MessageSegment"] = None,
+             seq: Optional["MessageSegment"] = None) -> "MessageSegment":
+        return MessageSegment(
+            "node",{
+                "id": str(id_),
+                "name": name,
+                "uin": str(uin),
+                "content": content,
+                "seq": seq
+            })
 
     @staticmethod
-    def video(file: str,
-              cache: Optional[bool] = None,
-              proxy: Optional[bool] = None,
-              timeout: Optional[int] = None) -> "MessageSegment":
-        return MessageSegment("video", {
-            "file": file,
-            "cache": cache,
-            "proxy": proxy,
-            "timeout": timeout
-        })
+    def xml(data: str, resid: Optional[int] = None) -> "MessageSegment":
+        return MessageSegment("xml", {"data": data, "resid": resid})
 
     @staticmethod
-    def xml(data: str) -> "MessageSegment":
-        return MessageSegment("xml", {"data": data})
+    def json(data: str, resid: Optional[int] = None) -> "MessageSegment":
+        return MessageSegment("json", {"data": data, "resid": resid})
 
+    @staticmethod
+    def cardimage(file: str, 
+                  minwidth: int = 400, 
+                  minheight: int = 400,
+                  maxwidth: int = 500,
+                  maxheight: int = 1000,
+                  source: Optional[str] = None,
+                  icon: Optional[str] = None) -> "MessageSegment":
+        return MessageSegment(
+            "cardimage", {
+                "file": file,
+                "minwidth": str(minwidth),
+                "minheight": str(minheight),
+                "maxwidth": str(maxwidth),
+                "maxheight": str(maxheight),
+                "source": source,
+                "icon": icon
+            }) 
+
+    @staticmethod
+    def tts(text: str) -> "MessageSegment":
+        return MessageSegment("tts", {"text": text})
 
 class Message(BaseMessage):
     """
