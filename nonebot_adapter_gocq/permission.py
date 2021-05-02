@@ -52,7 +52,7 @@ async def _group_member(bot: "Bot", event: "Event") -> bool:
 
 
 async def _group_admin(bot: "Bot", event: "Event") -> bool:
-    return isinstance(event, GroupMessageEvent) and event.sender.role == "admin"
+    return isinstance(event, GroupMessageEvent) and event.sender.role in ["admin", "owner"]
 
 
 async def _group_owner(bot: "Bot", event: "Event") -> bool:
