@@ -4,6 +4,7 @@ from typing import Type, List, Optional, TYPE_CHECKING
 
 from pydantic import BaseModel
 from pygtrie import StringTrie
+from nonebot import get_bots
 from nonebot.utils import escape_tag
 from nonebot.typing import overrides
 from nonebot.exception import NoLogException
@@ -61,12 +62,12 @@ class Event(BaseEvent):
 class Sender(BaseModel):
     user_id: Optional[int] = None
     nickname: Optional[str] = None
-    sex: Optional[str] = None
-    age: Optional[int] = None
     card: Optional[str] = None
+    sex: Optional[Literal["male", "female", "unknown"]] = None
+    age: Optional[int] = None
     area: Optional[str] = None
     level: Optional[str] = None
-    role: Optional[str] = None
+    role: Optional[Literal["owner", "admin", "member"]] = None
     title: Optional[str] = None
 
     class Config:
@@ -99,10 +100,18 @@ class File(BaseModel):
     name: str
     size: int
     busid: int
+    url: str
 
     class Config:
         extra = "allow"
 
+class Device(BaseModel):
+    app_id: int
+    device_name: str
+    device_kind: str
+
+    class Config:
+        extra = "allow"
 
 class Status(BaseModel):
     online: bool
@@ -117,10 +126,10 @@ class MessageEvent(Event):
     """消息事件"""
     __event__ = "message"
     post_type: Literal["message"]
-    sub_type: str
-    user_id: int
     message_type: str
+    sub_type: str
     message_id: int
+    user_id: int
     message: Message
     raw_message: str
     font: int
@@ -169,6 +178,13 @@ class PrivateMessageEvent(MessageEvent):
     """私聊消息"""
     __event__ = "message.private"
     message_type: Literal["private"]
+    sub_type: Literal["friend", "group", "group_selg", "other"]
+    temp_source: int
+    """
+    :说明: 临时会话来源
+
+    :类型: ``int``
+    """
 
     @overrides(Event)
     def get_event_description(self) -> str:
@@ -183,6 +199,7 @@ class GroupMessageEvent(MessageEvent):
     """群消息"""
     __event__ = "message.group"
     message_type: Literal["group"]
+    sub_type: Literal["normal", "anonymous", "notice"]
     group_id: int
     anonymous: Optional[Anonymous] = None
 
@@ -236,8 +253,8 @@ class GroupUploadNoticeEvent(NoticeEvent):
     """群文件上传事件"""
     __event__ = "notice.group_upload"
     notice_type: Literal["group_upload"]
-    user_id: int
     group_id: int
+    user_id: int
     file: File
 
     @overrides(NoticeEvent)
@@ -253,9 +270,9 @@ class GroupAdminNoticeEvent(NoticeEvent):
     """群管理员变动"""
     __event__ = "notice.group_admin"
     notice_type: Literal["group_admin"]
-    sub_type: str
-    user_id: int
+    sub_type: Literal["set", "unset"]
     group_id: int
+    user_id: int
 
     @overrides(NoticeEvent)
     def is_tome(self) -> bool:
@@ -274,10 +291,10 @@ class GroupDecreaseNoticeEvent(NoticeEvent):
     """群成员减少事件"""
     __event__ = "notice.group_decrease"
     notice_type: Literal["group_decrease"]
-    sub_type: str
-    user_id: int
+    sub_type: Literal["leave", "kick", "kick_me"]
     group_id: int
     operator_id: int
+    user_id: int
 
     @overrides(NoticeEvent)
     def is_tome(self) -> bool:
@@ -296,10 +313,10 @@ class GroupIncreaseNoticeEvent(NoticeEvent):
     """群成员增加事件"""
     __event__ = "notice.group_increase"
     notice_type: Literal["group_increase"]
-    sub_type: str
-    user_id: int
+    sub_type: Literal["approve", "invite"]
     group_id: int
     operator_id: int
+    user_id: int
 
     @overrides(NoticeEvent)
     def is_tome(self) -> bool:
@@ -318,10 +335,10 @@ class GroupBanNoticeEvent(NoticeEvent):
     """群禁言事件"""
     __event__ = "notice.group_ban"
     notice_type: Literal["group_ban"]
-    sub_type: str
-    user_id: int
+    sub_type: Literal["ban", "lift_ban"]
     group_id: int
     operator_id: int
+    user_id: int
     duration: int
 
     @overrides(NoticeEvent)
@@ -356,8 +373,8 @@ class GroupRecallNoticeEvent(NoticeEvent):
     """群消息撤回事件"""
     __event__ = "notice.group_recall"
     notice_type: Literal["group_recall"]
-    user_id: int
     group_id: int
+    user_id: int
     operator_id: int
     message_id: int
 
@@ -396,7 +413,6 @@ class NotifyEvent(NoticeEvent):
     notice_type: Literal["notify"]
     sub_type: str
     user_id: int
-    group_id: int
 
     @overrides(NoticeEvent)
     def get_user_id(self) -> str:
@@ -407,12 +423,24 @@ class NotifyEvent(NoticeEvent):
         return str(self.user_id)
 
 
-class PokeNotifyEvent(NotifyEvent):
-    """戳一戳提醒事件"""
+class FriendPokeNotifyEvent(NotifyEvent):
+    """好友戳一戳提醒事件"""
     __event__ = "notice.notify.poke"
     sub_type: Literal["poke"]
+    sender_id: int
     target_id: int
-    group_id: Optional[int] = None
+
+    @overrides(Event)
+    def is_tome(self) -> bool:
+        return self.target_id == self.self_id
+
+
+class GroupPokeNotifyEvent(NotifyEvent):
+    """群内戳一戳提醒事件"""
+    __event__ = "notice.notify.poke"
+    sub_type: Literal["poke"]
+    group_id: int
+    target_id: int
 
     @overrides(Event)
     def is_tome(self) -> bool:
@@ -423,6 +451,7 @@ class LuckyKingNotifyEvent(NotifyEvent):
     """群红包运气王提醒事件"""
     __event__ = "notice.notify.lucky_king"
     sub_type: Literal["lucky_king"]
+    group_id: int
     target_id: int
 
     @overrides(Event)
@@ -442,11 +471,64 @@ class HonorNotifyEvent(NotifyEvent):
     """群荣誉变更提醒事件"""
     __event__ = "notice.notify.honor"
     sub_type: Literal["honor"]
-    honor_type: str
+    group_id: int
+    honor_type: Literal["talkative:龙王", "performer:群聊之火", "emotion:快乐源泉"]
 
     @overrides(Event)
     def is_tome(self) -> bool:
         return self.user_id == self.self_id
+
+
+class GroupCardNoticeEvent(NoticeEvent):
+    """群成员名片更新事件"""
+    __event__ = "notice.group_card"
+    notice_type: Literal["group_card"]
+    group_id: int
+    user_id: int
+    card_new: str
+    card_old: str
+
+    @overrides(NoticeEvent)
+    def get_user_id(self) -> str:
+        return str(self.user_id)
+
+    @overrides(NoticeEvent)
+    def get_session_id(self) -> str:
+        return str(self.user_id)
+
+
+class OfflineFileNoticeEvent(NoticeEvent):
+    """接收到离线文件事件"""
+    __event__ = "notice.offline_file"
+    notice_type: Literal["offline_file"]
+    user_id: int
+    file: File
+
+    @overrides(NoticeEvent)
+    def get_user_id(self) -> str:
+        return str(self.user_id)
+
+    @overrides(NoticeEvent)
+    def get_session_id(self) -> str:
+        return str(self.user_id)
+
+
+class ClientStatusNoticeEvent(NoticeEvent):
+    """其他客户端在线状态变更事件"""
+    __event__ = "notice.client_status"
+    notice_type: Literal["client_status"]
+    client: Device
+    online: bool
+
+
+class EssenceMessageNoticeEvent(NoticeEvent):
+    """精华消息事件"""
+    __event__ = "notice.essence"
+    notice_type: Literal["essence"]
+    sub_type: Literal["add", "delete"]
+    sender_id: int
+    operator_id: int
+    message_id :int
 
 
 # Request Events
@@ -479,20 +561,20 @@ class FriendRequestEvent(RequestEvent):
     def get_session_id(self) -> str:
         return str(self.user_id)
 
-    async def approve(self, bot: "Bot", remark: str = ""):
-        return await bot.set_friend_add_request(flag=self.flag,
-                                                approve=True,
-                                                remark=remark)
+    async def approve(self, remark: str = ""):
+        return await get_bots()[self.self_id].set_friend_add_request(flag=self.flag,
+                                                                     approve=True,
+                                                                     remark=remark)
 
-    async def reject(self, bot: "Bot"):
-        return await bot.set_friend_add_request(flag=self.flag, approve=False)
+    async def reject(self):
+        return await get_bots()[self.self_id].set_friend_add_request(flag=self.flag, approve=False)
 
 
 class GroupRequestEvent(RequestEvent):
     """加群请求/邀请事件"""
     __event__ = "request.group"
     request_type: Literal["group"]
-    sub_type: str
+    sub_type: Literal["add", "invite"]
     group_id: int
     user_id: int
     comment: str
@@ -506,16 +588,16 @@ class GroupRequestEvent(RequestEvent):
     def get_session_id(self) -> str:
         return str(self.user_id)
 
-    async def approve(self, bot: "Bot"):
-        return await bot.set_group_add_request(flag=self.flag,
-                                               sub_type=self.sub_type,
-                                               approve=True)
+    async def approve(self):
+        return await get_bots()[self.self_id].set_group_add_request(flag=self.flag,
+                                                                    sub_type=self.sub_type,
+                                                                    approve=True)
 
-    async def reject(self, bot: "Bot", reason: str = ""):
-        return await bot.set_group_add_request(flag=self.flag,
-                                               sub_type=self.sub_type,
-                                               approve=False,
-                                               reason=reason)
+    async def reject(self, reason: str = ""):
+        return await get_bots()[self.self_id].set_group_add_request(flag=self.flag,
+                                                                    sub_type=self.sub_type,
+                                                                    approve=False,
+                                                                    reason=reason)
 
 
 # Meta Events
@@ -580,8 +662,10 @@ __all__ = [
     "NoticeEvent", "GroupUploadNoticeEvent", "GroupAdminNoticeEvent",
     "GroupDecreaseNoticeEvent", "GroupIncreaseNoticeEvent",
     "GroupBanNoticeEvent", "FriendAddNoticeEvent", "GroupRecallNoticeEvent",
-    "FriendRecallNoticeEvent", "NotifyEvent", "PokeNotifyEvent",
-    "LuckyKingNotifyEvent", "HonorNotifyEvent", "RequestEvent",
+    "FriendRecallNoticeEvent", "NotifyEvent", "FriendPokeNotifyEvent",
+    "GroupPokeNotifyEvent", "LuckyKingNotifyEvent", "HonorNotifyEvent",
+    "GroupCardNoticeEvent", "OfflineFileNoticeEvent",
+    "ClientStatusNoticeEvent", "EssenceMessageNoticeEvent", "RequestEvent",
     "FriendRequestEvent", "GroupRequestEvent", "MetaEvent",
     "LifecycleMetaEvent", "HeartbeatMetaEvent", "get_event_model"
 ]
