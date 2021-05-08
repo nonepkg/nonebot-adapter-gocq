@@ -95,7 +95,7 @@ def _check_at_me(bot: "Bot", event: "Event"):
     if event.message_type == "private":
         event.to_me = True
     else:
-        at_me_seg = MessageSegment.at(event.self_id)
+        at_me_seg = MessageSegment("at", {"qq": str(event.self_id)})
 
         # check the first segment
         if event.message[0] == at_me_seg:
