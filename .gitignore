@@ -1,5 +1,7 @@
 /*
 !nonebot_adapter_gocq
+__pycache__
+!docs
 !poetry.lock
 !pyproject.toml
 !README.md

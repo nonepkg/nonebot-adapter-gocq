@@ -12,6 +12,10 @@ _✨ go-cqhttp 协议适配 ✨_
 
 </div>
 
+### Guide
+
+[使用指南](./docs/manual.md)
+
 ### Feature
 
 - [x] 兼容 go-cqhttp 与 Onebot 标准不同的 API、Event、CQCode
