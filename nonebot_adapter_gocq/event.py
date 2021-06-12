@@ -179,7 +179,7 @@ class PrivateMessageEvent(MessageEvent):
     __event__ = "message.private"
     message_type: Literal["private"]
     sub_type: Literal["friend", "group", "group_selg", "other"]
-    temp_source: int
+    temp_source: Optional[int] = None
     """
     :说明: 临时会话来源
 
